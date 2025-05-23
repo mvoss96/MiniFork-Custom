@@ -1,12 +1,17 @@
 #include <Arduino.h>
+#include <ArduinoLog.h>
+
 #include "RemoteControl/XboxController.hpp"
+#include "Hardware/Vehicle.hpp"
 
 std::unique_ptr<RemoteControl> remote;
 
 void setup() {
   Serial.begin(115200);
+  Log.begin(LOG_LEVEL_VERBOSE, &Serial);
+
+  setupVehicle();
   remote = std::make_unique<XboxController>();
- 
 }
 
 void loop() {
@@ -14,8 +19,7 @@ void loop() {
   if (remote->isConnected())
   {
     const RemoteControlState &state = remote->getState();
-    Serial.printf("Throttle: %d, Steering: %d, LiftTilt: %d, LiftHeight: %d\n", state.throttle, state.steering, state.liftTilt, state.liftHeight);
-    delay(500);
+    controlVehicle(state);
   }
   else
   {

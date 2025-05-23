@@ -25,7 +25,7 @@ void XboxController::update()
             {
                 return 0;
             }
-            // Werte außerhalb der Deadzone runterskalieren
+            // Scale the value outside the deadzone to the full range of int16_t
             int16_t sign = (value > 0) ? 1 : -1;
             int32_t scaled = (std::abs(value) - this->deadzone) * int16_max / (int16_max - this->deadzone);
             return static_cast<int16_t>(sign * scaled);

@@ -11,8 +11,8 @@ constexpr int PIN_MOTOR_LIFT_B = 1;
 constexpr int PIN_MOTOR_1_A = 7;
 constexpr int PIN_MOTOR_1_B = 5;
 
-constexpr int STEERING_SERVO_MIN_MS = 1115;
-constexpr int STEERING_SERVO_MAX_MS = 2125;
+constexpr int STEERING_SERVO_MIN_MS = 1215;
+constexpr int STEERING_SERVO_MAX_MS = 2025;
 constexpr int LIFT_SERVO_MIN_MS = 1000;
 constexpr int LIFT_SERVO_MAX_MS = 1600;
 

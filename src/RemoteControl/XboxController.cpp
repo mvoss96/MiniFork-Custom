@@ -40,10 +40,10 @@ void XboxController::update()
         const uint16_t RT = controller->xboxNotif.trigRT;   // Right trigger
         const uint16_t LT = controller->xboxNotif.trigLT;   // Left trigger
 
-        Serial.println(RT);
-
+        // Steering
         state.steering = applyDeadzone(static_cast<int16_t>(((static_cast<int32_t>(LH) * int16_range) / joystickMax) + int16_min));
-        state.liftHeight = applyDeadzone(static_cast<int16_t>(((static_cast<int32_t>(RV) * int16_range) / joystickMax) + int16_min));
+        
+        // Throttle
         if (RT > 0 && LT == 0) // Right trigger is pressed more than left trigger
         {
             state.throttle = applyDeadzone(static_cast<int16_t>((static_cast<int32_t>(RT) * int16_max) / 1023));
@@ -53,14 +53,25 @@ void XboxController::update()
             state.throttle = applyDeadzone(static_cast<int16_t>((static_cast<int32_t>(RT - LT) * int16_max) / 1023));
         }
 
-        if (controller->xboxNotif.btnDirUp) // Button UP
+        // Lift Angle
+        if (controller->xboxNotif.btnDirLeft) // Button LEFT
         {
             lastTilt = min(static_cast<int>(int16_max), lastTilt + 30);
         }
-        else if (controller->xboxNotif.btnDirDown) // Button DOWN
+        else if (controller->xboxNotif.btnDirRight) // Button RIGHT
         {
             lastTilt = max(static_cast<int>(int16_min), lastTilt - 30);
         }
         state.liftTilt = lastTilt;
+
+        // Lift Height
+        if (controller->xboxNotif.btnDirUp) // Button UP
+        {
+            state.liftHeight = int16_max;
+        }
+        else if (controller->xboxNotif.btnDirDown) // Button DOWN
+        {
+            state.liftHeight = int16_min;
+        }
     }
 }

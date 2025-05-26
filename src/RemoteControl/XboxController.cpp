@@ -1,4 +1,5 @@
 #include "XboxController.hpp"
+#include <ArduinoLog.h>
 #include <limits>
 
 XboxController::XboxController()
@@ -28,6 +29,7 @@ void XboxController::update()
     state = {};
     if (connected)
     {
+        Log.verbose("Xbox controller battery: %d%%\n", controller->battery);
         constexpr uint16_t joystickMax = XboxControllerNotificationParser::maxJoy;
         constexpr int16_t int16_min = std::numeric_limits<int16_t>::min();
         constexpr int16_t int16_max = std::numeric_limits<int16_t>::max();
@@ -42,7 +44,7 @@ void XboxController::update()
 
         // Steering
         state.steering = applyDeadzone(static_cast<int16_t>(((static_cast<int32_t>(LH) * int16_range) / joystickMax) + int16_min));
-        
+
         // Throttle
         if (RT > 0 && LT == 0) // Right trigger is pressed more than left trigger
         {
@@ -56,13 +58,13 @@ void XboxController::update()
         // Lift Angle
         if (controller->xboxNotif.btnDirLeft) // Button LEFT
         {
-            lastTilt = min(static_cast<int>(int16_max), lastTilt + 30);
+            lastTiltAngleValue = min(static_cast<int>(int16_max), lastTiltAngleValue + 30);
         }
         else if (controller->xboxNotif.btnDirRight) // Button RIGHT
         {
-            lastTilt = max(static_cast<int>(int16_min), lastTilt - 30);
+            lastTiltAngleValue = max(static_cast<int>(int16_min), lastTiltAngleValue - 30);
         }
-        state.liftTilt = lastTilt;
+        state.liftTilt = lastTiltAngleValue;
 
         // Lift Height
         if (controller->xboxNotif.btnDirUp) // Button UP
@@ -72,6 +74,21 @@ void XboxController::update()
         else if (controller->xboxNotif.btnDirDown) // Button DOWN
         {
             state.liftHeight = int16_min;
+        }
+
+        // Telemetry
+        if (telemetry.underVoltageWarning == true && millis() - lastVibrationTime > vibrationInterval)
+        {
+            Log.warning("Under voltage warning, activating vibration\n");
+            XboxSeriesXHIDReportBuilder_asukiaaa::ReportBase repo;
+            repo.v.select.center = true;
+            repo.v.select.left = false;
+            repo.v.select.right = false;
+            repo.v.select.shake = true;
+            repo.v.power.center = 30;
+            repo.v.timeActive = 50;
+            controller->writeHIDReport(repo);
+            lastVibrationTime = millis();
         }
     }
 }

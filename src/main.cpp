@@ -6,7 +6,8 @@
 
 std::unique_ptr<RemoteControl> remote;
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
   Log.begin(LOG_LEVEL_VERBOSE, &Serial);
   Log.info("Starting Remote Control Vehicle\n");
@@ -15,12 +16,17 @@ void setup() {
   remote = std::make_unique<XboxController>();
 }
 
-void loop() {
+void loop()
+{
+  TelemetryData tel;
+  tel.vcc = readVcc();
+  tel.underVoltageWarning = checkUnderVoltage();
+  remote->addTelemetry(tel);
   remote->update();
+
   if (remote->isConnected())
   {
-    const RemoteControlState &state = remote->getState();
-    controlVehicle(state);
+    controlVehicle(remote->getState());
   }
   else
   {

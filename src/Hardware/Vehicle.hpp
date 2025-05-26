@@ -4,6 +4,7 @@
 #include "RemoteControl/RemoteControl.hpp"
 
 void setupVehicle();
-void readVcc();
+uint16_t readVcc();
+bool checkUnderVoltage();
 void controlVehicle(const RemoteControlState& state);
 

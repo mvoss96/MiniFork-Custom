@@ -9,3 +9,9 @@ bool RemoteControl::isConnected() const
 {
     return connected;
 }
+
+void RemoteControl::addTelemetry(TelemetryData &tel)
+{
+    telemetry.vcc = tel.vcc;
+    telemetry.underVoltageWarning = tel.underVoltageWarning;
+}

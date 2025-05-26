@@ -16,6 +16,8 @@ namespace
     constexpr int PIN_MOTOR_2_A = 6;
     constexpr int PIN_MOTOR_2_B = 8;
 
+    constexpr uint16_t minVCC = 7000; // Minimum VCC in mV
+
     constexpr int STEERING_SERVO_MIN_MS = 1315;
     constexpr int STEERING_SERVO_MAX_MS = 1925;
     constexpr int LIFT_SERVO_MIN_MS = 1000;
@@ -68,11 +70,18 @@ namespace
         setMotor1DutyCycle(direction, dutyCycleLeft);
         setMotor2DutyCycle(direction, dutyCycleRight);
     }
+
 } // namespace
 
-void readVcc()
+uint16_t readVcc()
 {
     vccValue = analogReadMilliVolts(PIN_VCC_SENS) * (VCC_SENS_R1 + VCC_SENS_R2) / VCC_SENS_R2; // Calculate VCC using voltage divider formula
+    return vccValue;
+}
+
+bool checkUnderVoltage()
+{
+    return vccValue < minVCC;
 }
 
 void setupVehicle()
@@ -95,7 +104,11 @@ void setupVehicle()
 
 void controlVehicle(const RemoteControlState &state)
 {
-    readVcc();
+    if (checkUnderVoltage()){
+        Log.warning("Undervoltage detected: %dmV. Vehicle control disabled.\n", vccValue);
+        delay(1000);
+        return;
+    }
 
     uint16_t steeringValue = map(state.steering + steeringTrim, std::numeric_limits<int16_t>::max(), std::numeric_limits<int16_t>::min(), STEERING_SERVO_MIN_MS, STEERING_SERVO_MAX_MS);
     uint16_t liftTiltValue = map(state.liftTilt + liftTiltTrim, std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max(), LIFT_SERVO_MIN_MS, LIFT_SERVO_MAX_MS);
